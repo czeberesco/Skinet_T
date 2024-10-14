@@ -4,20 +4,24 @@ namespace Core.Specifications;
 
 public class ProductSpecification : BaseSpecification<Product>
 {
-    public ProductSpecification(string? brand, string? type, string? sort) : base(x =>
-        (string.IsNullOrEmpty(brand) || x.Brand.Contains(brand)) &&
-        (string.IsNullOrEmpty(type) || x.Type.Contains(type)))
+    public ProductSpecification(ProductSpecParams specParams) : base(x =>
+        (string.IsNullOrEmpty(specParams.Search) || x.Name.ToLower().Contains(specParams.Search)) &&
+        (specParams.Brands.Count == 0 || specParams.Brands.Contains(x.Brand)) &&
+        (specParams.Types.Count == 0 || specParams.Types.Contains(x.Type)))
     {
-        switch (sort)
+        int skip = (specParams.PageIndex - 1) * specParams.PageSize;
+        ApplyPaging(skip, specParams.PageSize);
+
+        switch (specParams.Sort)
         {
             case "priceAsc":
-                AddOrderBy(x => x.Price);
+                AddOrderByExpression(x => x.Price);
                 break;
             case "priceDesc":
-                AddOrderByDescending(x => x.Price);
+                AddOrderByDescendingExpression(x => x.Price);
                 break;
             default:
-                AddOrderBy(x => x.Name);
+                AddOrderByExpression(x => x.Name);
                 break;
         }
     }
